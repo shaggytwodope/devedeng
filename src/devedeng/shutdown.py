@@ -17,36 +17,43 @@
 
 from gi.repository import Gio, GLib
 
-class shutdown:
 
+class shutdown:
     def __init__(self):
 
         # First, try with logind
         try:
             bus = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
-            bus.call_sync("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager",
-                          "PowerOff", GLib.Variant_boolean('(bb)', ( False , False) ), None, Gio.DBusCallFlags.NONE, -1, None)
+            bus.call_sync("org.freedesktop.login1", "/org/freedesktop/login1",
+                          "org.freedesktop.login1.Manager", "PowerOff",
+                          GLib.Variant_boolean('(bb)', (False, False)), None,
+                          Gio.DBusCallFlags.NONE, -1, None)
         except:
-            failure=True
+            failure = True
 
         if (failure):
-            failure=False
+            failure = False
 
             # If it fails, try with ConsoleKit
             try:
                 bus = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
-                bus.call_sync("org.freedesktop.ConsoleKit", "/org/freedesktop/ConsoleKit/Manager", "org.freedesktop.ConsoleKit.Manager",
-                              "Stop", None, None, Gio.DBusCallFlags.NONE, -1, None)
+                bus.call_sync("org.freedesktop.ConsoleKit",
+                              "/org/freedesktop/ConsoleKit/Manager",
+                              "org.freedesktop.ConsoleKit.Manager", "Stop",
+                              None, None, Gio.DBusCallFlags.NONE, -1, None)
             except:
-                failure=True
+                failure = True
 
         if (failure):
-            failure=False
+            failure = False
 
             # If it fails, try with HAL
             try:
                 bus = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
-                bus.call_sync("org.freedesktop.Hal", "/org/freedesktop/Hal/devices/computer","org.freedesktop.Hal.Device.SystemPowerManagement",
-                              "Shutdown", None, None, Gio.DBusCallFlags.NONE, -1, None)
+                bus.call_sync(
+                    "org.freedesktop.Hal",
+                    "/org/freedesktop/Hal/devices/computer",
+                    "org.freedesktop.Hal.Device.SystemPowerManagement",
+                    "Shutdown", None, None, Gio.DBusCallFlags.NONE, -1, None)
             except:
-                failure=True
+                failure = True

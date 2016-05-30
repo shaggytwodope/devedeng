@@ -23,15 +23,17 @@ import subprocess
 import devedeng.configuration_data
 import devedeng.executor
 
-class subtitles_mux(devedeng.executor.executor):
 
+class subtitles_mux(devedeng.executor.executor):
     def __init__(self):
 
         devedeng.executor.executor.__init__(self)
         self.config = devedeng.configuration_data.configuration.get_config()
 
-    def multiplex_subtitles(self, file_path, subtitles_path, subt_codepage, subt_lang,
-                            subt_upper, font_size, pal, force_subtitles, aspect, duration, stream_id, fill_color, outline_color, outline_thick):
+    def multiplex_subtitles(self, file_path, subtitles_path, subt_codepage,
+                            subt_lang, subt_upper, font_size, pal,
+                            force_subtitles, aspect, duration, stream_id,
+                            fill_color, outline_color, outline_thick):
 
         if len(fill_color) == 4:
             fill_color = fill_color[:3]
@@ -40,9 +42,12 @@ class subtitles_mux(devedeng.executor.executor):
 
         self.subt_path = file_path
         self.duration = duration
-        self.text = _("Adding %(L)s subtitles to %(X)s") % {"X": os.path.basename(file_path), "L": subt_lang}
+        self.text = _("Adding %(L)s subtitles to %(X)s") % {
+            "X": os.path.basename(file_path),
+            "L": subt_lang
+        }
 
-        out_xml = open(file_path+".xml","w")
+        out_xml = open(file_path + ".xml", "w")
         out_xml.write('<subpictures format="')
         if pal:
             out_xml.write('PAL')
@@ -59,10 +64,13 @@ class subtitles_mux(devedeng.executor.executor):
         if subt_upper:
             out_xml.write('" bottom-margin="50')
         print("Punto clave")
-        out_xml.write('" fill-color="#%02X%02X%02X"' % tuple([int(fill_color[i] * 255) for i in range(len(fill_color))]))
-        out_xml.write(' outline-color="#%02X%02X%02X"' % tuple([int(outline_color[i] * 255) for i in range(len(outline_color))]))
+        out_xml.write('" fill-color="#%02X%02X%02X"' % tuple(
+            [int(fill_color[i] * 255) for i in range(len(fill_color))]))
+        out_xml.write(' outline-color="#%02X%02X%02X"' % tuple(
+            [int(outline_color[i] * 255) for i in range(len(outline_color))]))
         out_xml.write(' outline-thickness="%d"' % outline_thick)
-        out_xml.write(' font="arial" horizontal-alignment="center" vertical-alignment="bottom" aspect="')
+        out_xml.write(
+            ' font="arial" horizontal-alignment="center" vertical-alignment="bottom" aspect="')
         out_xml.write(str(aspect))
         out_xml.write('" force="')
         if force_subtitles:
@@ -73,8 +81,8 @@ class subtitles_mux(devedeng.executor.executor):
         out_xml.write('\t</stream>\n')
         out_xml.write('</subpictures>')
         out_xml.close()
-        
-        self.command_var=[]
+
+        self.command_var = []
         self.command_var.append("spumux")
         mode = self.config.disc_type
         if mode == "vcd":
@@ -83,20 +91,18 @@ class subtitles_mux(devedeng.executor.executor):
         self.command_var.append(mode)
         self.command_var.append("-s")
         self.command_var.append(str(stream_id))
-        self.command_var.append(file_path+".xml")
-        self.stdin_file = file_path+".tmp"
+        self.command_var.append(file_path + ".xml")
+        self.stdin_file = file_path + ".tmp"
         self.stdout_file = file_path
-
 
     def pre_function(self):
 
-        final_path = self.subt_path+".tmp"
+        final_path = self.subt_path + ".tmp"
         if os.path.exists(final_path):
             os.remove(final_path)
         os.rename(self.subt_path, final_path)
 
-
-    def process_stderr(self,data):
+    def process_stderr(self, data):
 
         if (data is None) or (len(data) == 0):
             return

@@ -28,6 +28,7 @@ import devedeng.mkisofs
 import devedeng.genisoimage
 import devedeng.mpv
 
+
 class converter:
 
     current_converter = None
@@ -38,13 +39,15 @@ class converter:
             converter.current_converter = converter()
         return converter.current_converter
 
-
     def __init__(self):
 
         self.config = devedeng.configuration_data.configuration.get_config()
         # List of classes with conversion capabilities, in order of preference
-        self.c = [devedeng.vlc.vlc, devedeng.mpv.mpv, devedeng.mplayer.mplayer, devedeng.ffmpeg.ffmpeg, devedeng.ffprobe.ffprobe, devedeng.avconv.avconv, devedeng.avprobe.avprobe,
-                  devedeng.brasero.brasero, devedeng.k3b.k3b, devedeng.mkisofs.mkisofs, devedeng.genisoimage.genisoimage]
+        self.c = [devedeng.vlc.vlc, devedeng.mpv.mpv, devedeng.mplayer.mplayer,
+                  devedeng.ffmpeg.ffmpeg, devedeng.ffprobe.ffprobe,
+                  devedeng.avconv.avconv, devedeng.avprobe.avprobe,
+                  devedeng.brasero.brasero, devedeng.k3b.k3b,
+                  devedeng.mkisofs.mkisofs, devedeng.genisoimage.genisoimage]
 
         self.analizers = {}
         self.default_analizer = None
@@ -92,7 +95,6 @@ class converter:
                 if (self.default_burner is None):
                     self.default_burner = element
 
-
     def get_supported_programs(self):
 
         analizers = []
@@ -118,7 +120,6 @@ class converter:
 
         return (analizers, players, menuers, converters, burners, mkiso)
 
-
     def get_available_programs(self):
 
         players = []
@@ -142,7 +143,6 @@ class converter:
             mkiso.append(e)
 
         return (analizers, players, menuers, converters, burners, mkiso)
-
 
     def get_needed_programs(self):
         """ returns a tupla with six lists. When a list is NONE, there are installed in the system
@@ -192,12 +192,13 @@ class converter:
             if (e.supports_mkiso) and (mkiso is not None):
                 mkiso.append(name)
 
-        return ( analizers, players, converters, menuers, burners, mkiso )
+        return (analizers, players, converters, menuers, burners, mkiso)
 
     def get_film_player(self):
         """ returns a class for the desired film player, or the most priviledged if the desired is not installed """
 
-        if (self.config.film_player is None) or (self.config.film_player not in self.players):
+        if (self.config.film_player is None) or (
+                self.config.film_player not in self.players):
             return self.default_player
         else:
             return self.players[self.config.film_player]
@@ -205,7 +206,8 @@ class converter:
     def get_film_analizer(self):
         """ returns a class for the desired film analizer, or the most priviledged if the desired is not installed """
 
-        if (self.config.film_analizer is None) or (self.config.film_analizer not in self.analizers):
+        if (self.config.film_analizer is None) or (
+                self.config.film_analizer not in self.analizers):
             return self.default_analizer
         else:
             return self.analizers[self.config.film_analizer]
@@ -213,7 +215,8 @@ class converter:
     def get_menu_converter(self):
         """ returns a class for the desired menu converter, or the most priviledged if the desired is not installed """
 
-        if (self.config.menu_converter is None) or (self.config.menu_converter not in self.menuers):
+        if (self.config.menu_converter is None) or (
+                self.config.menu_converter not in self.menuers):
             return self.default_menuer
         else:
             return self.menuers[self.config.menu_converter]
@@ -222,18 +225,21 @@ class converter:
         """ returns a class for the desired disc converter, or the most priviledged if the desired is not installed """
 
         # if there is a film converter chosen by the user, and it is installed in the system
-        if (self.config.film_converter is not None) and (self.config.film_converter in self.converters):
+        if (self.config.film_converter is not None) and (
+                self.config.film_converter in self.converters):
             # and that converter supports the current disc type
-            if self.converters[self.config.film_converter].disc_types.count(self.config.disc_type) != 0:
+            if self.converters[self.config.film_converter].disc_types.count(
+                    self.config.disc_type) != 0:
                 # return that converter
                 return self.converters[self.config.film_converter]
         # if not, return the first available converter that supports the current disc type
         for converter in self.converters:
-            if self.converters[converter].disc_types.count(self.config.disc_type) != 0:
+            if self.converters[converter].disc_types.count(
+                    self.config.disc_type) != 0:
                 return self.converters[converter]
         return None
 
-    def get_disc_converter_by_name(self,name):
+    def get_disc_converter_by_name(self, name):
         if name in self.converters:
             return self.converters[name]
         return None
@@ -241,7 +247,8 @@ class converter:
     def get_burner(self):
         """ returns a class for the desired burner, or the most priviledged if the desired is not installed """
 
-        if (self.config.burner is None) or (self.config.burner not in self.burners):
+        if (self.config.burner is None) or (
+                self.config.burner not in self.burners):
             return self.default_burner
         else:
             return self.burners[self.config.burner]
@@ -249,7 +256,8 @@ class converter:
     def get_mkiso(self):
         """ returns a class for the desired mkiso, or the most priviledged if the desired is not installed """
 
-        if (self.config.mkiso is None) or (self.config.mkiso not in self.mkiso):
+        if (self.config.mkiso is None) or (
+                self.config.mkiso not in self.mkiso):
             return self.default_mkiso
         else:
             return self.mkiso[self.config.mkiso]

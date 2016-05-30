@@ -19,8 +19,8 @@ from gi.repository import Gtk
 import os
 import devedeng.configuration_data
 
-class create_disk_window:
 
+class create_disk_window:
     def __init__(self):
 
         self.config = devedeng.configuration_data.configuration.get_config()
@@ -30,7 +30,7 @@ class create_disk_window:
         builder = Gtk.Builder()
         builder.set_translation_domain(self.config.gettext_domain)
 
-        builder.add_from_file(os.path.join(self.config.glade,"wcreate.ui"))
+        builder.add_from_file(os.path.join(self.config.glade, "wcreate.ui"))
         builder.connect_signals(self)
         wcreate_window = builder.get_object("dialog_create")
         self.wpath = builder.get_object("path")
@@ -45,7 +45,7 @@ class create_disk_window:
         self.on_iface_changed(None)
         retval = wcreate_window.run()
         self.name = self.wname.get_text()
-        self.path = os.path.join(self.wpath.get_filename(),self.name)
+        self.path = os.path.join(self.wpath.get_filename(), self.name)
         self.shutdown = wshutdown.get_active()
 
         if (retval == 1):
@@ -57,12 +57,12 @@ class create_disk_window:
             return True
         else:
             return False
-    
-    def on_iface_changed(self,b):
-        
+
+    def on_iface_changed(self, b):
+
         path = self.wpath.get_filename()
         name = self.wname.get_text()
-        
+
         if ((path is None) or (path == "") or (name is None) or (name == "")):
             self.waccept.set_sensitive(False)
         else:

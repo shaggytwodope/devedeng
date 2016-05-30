@@ -19,8 +19,8 @@ from gi.repository import Gtk
 import os
 import devedeng.configuration_data
 
-class about_window:
 
+class about_window:
     def __init__(self):
 
         self.config = devedeng.configuration_data.configuration.get_config()
@@ -28,7 +28,7 @@ class about_window:
         builder = Gtk.Builder()
         builder.set_translation_domain(self.config.gettext_domain)
 
-        builder.add_from_file(os.path.join(self.config.glade,"wabout.ui"))
+        builder.add_from_file(os.path.join(self.config.glade, "wabout.ui"))
         builder.connect_signals(self)
         w_window = builder.get_object("about_devedeng")
         w_window.set_version(self.config.version)

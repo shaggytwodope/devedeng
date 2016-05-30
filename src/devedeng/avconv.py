@@ -23,6 +23,7 @@ import devedeng.configuration_data
 import devedeng.avbase
 import devedeng.mux_dvd_menu
 
+
 class avconv(devedeng.avbase.avbase):
 
     supports_analize = False
@@ -34,13 +35,14 @@ class avconv(devedeng.avbase.avbase):
     display_name = "AVCONV"
     disc_types = []
 
-
     @staticmethod
     def check_is_installed():
         try:
-            handle = subprocess.Popen(["avconv","-codecs"], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+            handle = subprocess.Popen(["avconv", "-codecs"],
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE)
             (stdout, stderr) = handle.communicate()
-            if 0==handle.wait():
+            if 0 == handle.wait():
                 mp2 = False
                 mp3 = False
                 ac3 = False
@@ -100,21 +102,27 @@ class avconv(devedeng.avbase.avbase):
         except:
             return False
 
-
     def __init__(self):
 
         devedeng.executor.executor.__init__(self)
         self.config = devedeng.configuration_data.configuration.get_config()
-        self.check_version(["avconv","-version"])
+        self.check_version(["avconv", "-version"])
 
-
-    def convert_file(self,file_project,output_file,video_length,pass2 = False):
+    def convert_file(self,
+                     file_project,
+                     output_file,
+                     video_length,
+                     pass2=False):
 
         if file_project.two_pass_encoding:
             if pass2:
-                self.text = _("Converting %(X)s (pass 2)") % {"X" : file_project.title_name}
+                self.text = _("Converting %(X)s (pass 2)") % {
+                    "X": file_project.title_name
+                }
             else:
-                self.text = _("Converting %(X)s (pass 1)") % {"X" : file_project.title_name}
+                self.text = _("Converting %(X)s (pass 1)") % {
+                    "X": file_project.title_name
+                }
                 # Prepare the converting process for the second pass
                 tmp = devedeng.avconv.avconv()
                 tmp.convert_file(file_project, output_file, video_length, True)
@@ -123,103 +131,121 @@ class avconv(devedeng.avbase.avbase):
                 # add it as a child process of this one
                 self.add_child_process(tmp)
         else:
-            self.text = _("Converting %(X)s") % {"X" : file_project.title_name}
+            self.text = _("Converting %(X)s") % {"X": file_project.title_name}
 
         if (pass2 == False) and (file_project.two_pass_encoding == True):
             # this is the first pass in a 2-pass codification
             second_pass = False
         else:
             # second_pass is TRUE in the second pass of a 2-pass codification, and also when not doing 2-pass codification
-            # It is used to remove unnecessary steps during the first pass, but that are needed on the second pass, or when not using 2-pass codification 
+            # It is used to remove unnecessary steps during the first pass, but that are needed on the second pass, or when not using 2-pass codification
             second_pass = True
 
         if (video_length == 0):
             self.final_length = file_project.original_length
         else:
             self.final_length = video_length
-        self.command_var=[]
+        self.command_var = []
         self.command_var.append("avconv")
         self.command_var.append("-i")
         self.command_var.append(file_project.file_name)
 
-        if (file_project.volume!=100) and second_pass:
+        if (file_project.volume != 100) and second_pass:
             self.command_var.append("-vol")
-            self.command_var.append(str((256*file_project.volume)/100))
+            self.command_var.append(str((256 * file_project.volume) / 100))
 
-        if (file_project.audio_delay != 0.0) and (file_project.copy_sound==False) and (file_project.no_reencode_audio_video==False) and second_pass:
+        if (file_project.audio_delay != 0.0
+            ) and (file_project.copy_sound == False) and (
+                file_project.no_reencode_audio_video == False) and second_pass:
             self.command_var.append("-itsoffset")
             self.command_var.append(str(file_project.audio_delay))
 
         self.command_var.append("-i")
         self.command_var.append(file_project.file_name)
         self.command_var.append("-map")
-        self.command_var.append("1:"+str(file_project.video_list[0]))
-        if (not file_project.copy_sound) and (not file_project.no_reencode_audio_video):
+        self.command_var.append("1:" + str(file_project.video_list[0]))
+        if (not file_project.copy_sound) and (
+                not file_project.no_reencode_audio_video):
             for l in file_project.audio_list:
                 self.command_var.append("-map")
-                self.command_var.append("0:"+str(l))
+                self.command_var.append("0:" + str(l))
 
-        if (file_project.no_reencode_audio_video==False) and second_pass:
-            cmd_line=""
+        if (file_project.no_reencode_audio_video == False) and second_pass:
+            cmd_line = ""
 
-            if file_project.deinterlace=="deinterlace_yadif":
-                cmd_line+="yadif"
+            if file_project.deinterlace == "deinterlace_yadif":
+                cmd_line += "yadif"
 
-            vflip=False
-            hflip=False
+            vflip = False
+            hflip = False
 
-            if (file_project.rotation=="rotation_90"):
-                if (cmd_line!=""):
-                    cmd_line+=",fifo,"
-                cmd_line+="transpose=1"
-            elif (file_project.rotation=="rotation_270"):
-                if (cmd_line!=""):
-                    cmd_line+=",fifo,"
-                cmd_line+="transpose=2"
-            elif (file_project.rotation=="rotation_180"):
-                vflip=True
-                hflip=True
+            if (file_project.rotation == "rotation_90"):
+                if (cmd_line != ""):
+                    cmd_line += ",fifo,"
+                cmd_line += "transpose=1"
+            elif (file_project.rotation == "rotation_270"):
+                if (cmd_line != ""):
+                    cmd_line += ",fifo,"
+                cmd_line += "transpose=2"
+            elif (file_project.rotation == "rotation_180"):
+                vflip = True
+                hflip = True
 
             if (file_project.mirror_vertical):
-                vflip=not vflip
+                vflip = not vflip
             if (file_project.mirror_horizontal):
-                hflip=not hflip
+                hflip = not hflip
 
             if (vflip):
-                if (cmd_line!=""):
-                    cmd_line+=",fifo,"
-                cmd_line+="vflip"
+                if (cmd_line != ""):
+                    cmd_line += ",fifo,"
+                cmd_line += "vflip"
             if (hflip):
-                if (cmd_line!=""):
-                    cmd_line+=",fifo,"
-                cmd_line+="hflip"
+                if (cmd_line != ""):
+                    cmd_line += ",fifo,"
+                cmd_line += "hflip"
 
-            if (file_project.width_midle != file_project.original_width) or (file_project.height_midle != file_project.original_height):
-                if (cmd_line!=""):
-                    cmd_line+=",fifo,"
-                x = int((file_project.width_midle - file_project.original_width) /2)
-                y = int((file_project.height_midle - file_project.original_height) /2)
+            if (file_project.width_midle != file_project.original_width) or (
+                    file_project.height_midle != file_project.original_height):
+                if (cmd_line != ""):
+                    cmd_line += ",fifo,"
+                x = int(
+                    (file_project.width_midle - file_project.original_width) /
+                    2)
+                y = int(
+                    (file_project.height_midle - file_project.original_height)
+                    / 2)
                 if (x > 0) or (y > 0):
-                    cmd_line+="pad="+str(file_project.width_midle)+":"+str(file_project.height_midle)+":"+str(x)+":"+str(y)+":0x000000"
+                    cmd_line += "pad=" + str(
+                        file_project.width_midle) + ":" + str(
+                            file_project.height_midle) + ":" + str(
+                                x) + ":" + str(y) + ":0x000000"
                 else:
-                    cmd_line+="crop="+str(file_project.width_midle)+":"+str(file_project.height_midle)+":"+str(x)+":"+str(y)
+                    cmd_line += "crop=" + str(
+                        file_project.width_midle) + ":" + str(
+                            file_project.height_midle) + ":" + str(
+                                x) + ":" + str(y)
 
-            if (file_project.width_final != file_project.width_midle) or (file_project.height_final != file_project.height_midle):
-                if (cmd_line!=""):
-                    cmd_line+=",fifo,"
+            if (file_project.width_final != file_project.width_midle) or (
+                    file_project.height_final != file_project.height_midle):
+                if (cmd_line != ""):
+                    cmd_line += ",fifo,"
                 if self.major_version < 11:
-                    cmd_line+="scale="+str(file_project.width_final)+":"+str(file_project.height_final)
+                    cmd_line += "scale=" + str(
+                        file_project.width_final) + ":" + str(
+                            file_project.height_final)
                 else:
-                    cmd_line+="scale=w="+str(file_project.width_final)+":h="+str(file_project.height_final)
+                    cmd_line += "scale=w=" + str(
+                        file_project.width_final) + ":h=" + str(
+                            file_project.height_final)
 
-            if cmd_line!="":
+            if cmd_line != "":
                 self.command_var.append("-vf")
                 self.command_var.append(cmd_line)
 
-
         self.command_var.append("-y")
 
-        vcd=False
+        vcd = False
 
         if (self.config.disc_type == "divx"):
             self.command_var.append("-vcodec")
@@ -237,10 +263,10 @@ class avconv(devedeng.avbase.avbase):
             self.command_var.append("matroska")
         else:
             self.command_var.append("-target")
-            if (self.config.disc_type=="dvd"):
+            if (self.config.disc_type == "dvd"):
                 if not file_project.format_pal:
                     self.command_var.append("ntsc-dvd")
-                elif (file_project.original_fps==24):
+                elif (file_project.original_fps == 24):
                     self.command_var.append("film-dvd")
                 else:
                     self.command_var.append("pal-dvd")
@@ -248,25 +274,25 @@ class avconv(devedeng.avbase.avbase):
                     if file_project.sound5_1:
                         self.command_var.append("-acodec")
                         self.command_var.append("ac3")
-            elif (self.config.disc_type=="vcd"):
-                vcd=True
+            elif (self.config.disc_type == "vcd"):
+                vcd = True
                 if not file_project.format_pal:
                     self.command_var.append("ntsc-vcd")
                 else:
                     self.command_var.append("pal-vcd")
-            elif (self.config.disc_type=="svcd"):
+            elif (self.config.disc_type == "svcd"):
                 if not file_project.format_pal:
                     self.command_var.append("ntsc-svcd")
                 else:
                     self.command_var.append("pal-svcd")
-            elif (self.config.disc_type=="cvd"):
+            elif (self.config.disc_type == "cvd"):
                 if not file_project.format_pal:
                     self.command_var.append("ntsc-svcd")
                 else:
                     self.command_var.append("pal-svcd")
 
-        if  (not file_project.no_reencode_audio_video):
-            self.command_var.append("-sn") # no subtitles
+        if (not file_project.no_reencode_audio_video):
+            self.command_var.append("-sn")  # no subtitles
 
         if file_project.copy_sound or file_project.no_reencode_audio_video:
             self.command_var.append("-acodec")
@@ -276,23 +302,26 @@ class avconv(devedeng.avbase.avbase):
             self.command_var.append("-vcodec")
             self.command_var.append("copy")
 
-        if (vcd==False):
+        if (vcd == False):
             if not file_project.format_pal:
-                if (file_project.original_fps==24) and ((self.config.disc_type=="dvd")):
-                    keyintv=15
+                if (file_project.original_fps == 24) and (
+                    (self.config.disc_type == "dvd")):
+                    keyintv = 15
                 else:
-                    keyintv=18
+                    keyintv = 18
             else:
-                keyintv=15
+                keyintv = 15
 
             if not file_project.gop12:
                 self.command_var.append("-g")
                 self.command_var.append(str(keyintv))
 
-        if (self.config.disc_type=="divx") or (self.config.disc_type=="mkv"):
+        if (self.config.disc_type == "divx") or (
+                self.config.disc_type == "mkv"):
             self.command_var.append("-g")
             self.command_var.append("300")
-        elif file_project.gop12 and (file_project.no_reencode_audio_video==False):
+        elif file_project.gop12 and (
+                file_project.no_reencode_audio_video == False):
             self.command_var.append("-g")
             self.command_var.append("12")
 
@@ -306,7 +335,9 @@ class avconv(devedeng.avbase.avbase):
             self.command_var.append(str(video_length))
 
         self.command_var.append("-ac")
-        if (file_project.sound5_1) and ((self.config.disc_type=="dvd") or (self.config.disc_type=="divx") or (self.config.disc_type=="mkv")):
+        if (file_project.sound5_1) and ((self.config.disc_type == "dvd") or
+                                        (self.config.disc_type == "divx") or
+                                        (self.config.disc_type == "mkv")):
             self.command_var.append("6")
         else:
             self.command_var.append("2")
@@ -314,16 +345,19 @@ class avconv(devedeng.avbase.avbase):
         self.command_var.append("-aspect")
         self.command_var.append(str(file_project.aspect_ratio_final))
 
-        if self.config.disc_type=="divx":
+        if self.config.disc_type == "divx":
             self.command_var.append("-vtag")
             self.command_var.append("DX50")
 
-        if (file_project.deinterlace == "deinterlace_ffmpeg") and (file_project.no_reencode_audio_video==False) and second_pass:
+        if (file_project.deinterlace == "deinterlace_ffmpeg") and (
+                file_project.no_reencode_audio_video == False) and second_pass:
             self.command_var.append("-deinterlace")
 
-        if (file_project.no_reencode_audio_video==False) and (vcd==False) and second_pass:
+        if (file_project.no_reencode_audio_video == False) and (
+                vcd == False) and second_pass:
             self.command_var.append("-s")
-            self.command_var.append(str(file_project.width_final)+"x"+str(file_project.height_final))
+            self.command_var.append(str(file_project.width_final) + "x" + str(
+                file_project.height_final))
 
         if second_pass:
             self.command_var.append("-trellis")
@@ -338,10 +372,10 @@ class avconv(devedeng.avbase.avbase):
 
         if (vcd == False) and (file_project.no_reencode_audio_video == False):
             self.command_var.append("-b:a")
-            self.command_var.append(str(file_project.audio_rate_final)+"k")
+            self.command_var.append(str(file_project.audio_rate_final) + "k")
 
             self.command_var.append("-b:v")
-            self.command_var.append(str(file_project.video_rate_final)+"k")
+            self.command_var.append(str(file_project.video_rate_final) + "k")
 
         if file_project.two_pass_encoding == True:
             self.command_var.append("-passlogfile")
@@ -354,14 +388,14 @@ class avconv(devedeng.avbase.avbase):
 
         self.command_var.append(output_file)
 
-
-    def create_menu_mpeg(self,n_page,background_music,sound_length,pal,video_rate, audio_rate,output_path, use_mp2):
+    def create_menu_mpeg(self, n_page, background_music, sound_length, pal,
+                         video_rate, audio_rate, output_path, use_mp2):
 
         self.n_page = n_page
         self.final_length = float(sound_length)
         self.text = _("Creating menu %(X)d") % {"X": self.n_page}
 
-        self.command_var=[]
+        self.command_var = []
         self.command_var.append("avconv")
 
         self.command_var.append("-loop")
@@ -370,7 +404,8 @@ class avconv(devedeng.avbase.avbase):
         self.command_var.append("-f")
         self.command_var.append("image2")
         self.command_var.append("-i")
-        self.command_var.append(os.path.join(output_path,"menu_"+str(n_page)+"_bg.png"))
+        self.command_var.append(os.path.join(output_path, "menu_" + str(n_page)
+                                             + "_bg.png"))
         self.command_var.append("-i")
         self.command_var.append(background_music)
 
@@ -384,7 +419,7 @@ class avconv(devedeng.avbase.avbase):
         if (use_mp2):
             self.command_var.append("mp2")
             if (audio_rate > 384):
-                audio_rate = 384 #max bitrate for mp2
+                audio_rate = 384  #max bitrate for mp2
         else:
             self.command_var.append("ac3")
         self.command_var.append("-s")
@@ -395,36 +430,36 @@ class avconv(devedeng.avbase.avbase):
         self.command_var.append("-g")
         self.command_var.append("12")
         self.command_var.append("-b:v")
-        self.command_var.append(str(video_rate)+"k")
+        self.command_var.append(str(video_rate) + "k")
         self.command_var.append("-b:a")
-        self.command_var.append(str(audio_rate)+"k")
+        self.command_var.append(str(audio_rate) + "k")
         self.command_var.append("-aspect")
         self.command_var.append("4:3")
 
         self.command_var.append("-t")
-        self.command_var.append(str(1+sound_length))
+        self.command_var.append(str(1 + sound_length))
 
-        movie_path = os.path.join(output_path,"menu_"+str(n_page)+".mpg")
+        movie_path = os.path.join(output_path, "menu_" + str(n_page) + ".mpg")
         self.command_var.append(movie_path)
 
         muxer = devedeng.mux_dvd_menu.mux_dvd_menu()
-        final_path = muxer.create_mpg(n_page,output_path,movie_path)
+        final_path = muxer.create_mpg(n_page, output_path, movie_path)
         # the muxer process depends of the converter process
         muxer.add_dependency(self)
         self.add_child_process(muxer)
 
         return (final_path)
 
-    def process_stdout(self,data):
+    def process_stdout(self, data):
 
         return
 
-    def process_stderr(self,data):
+    def process_stderr(self, data):
 
         pos = data[0].find("time=")
         if (pos != -1):
-            pos+=5
-            pos2 = data[0].find(" ",pos)
+            pos += 5
+            pos2 = data[0].find(" ", pos)
             if (pos2 != -1):
                 parts = data[0][pos:pos2].split(":")
                 t = 0.0
